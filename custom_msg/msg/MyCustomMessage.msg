@@ -1,0 +1,2 @@
+int32 my_data
+string my_string
