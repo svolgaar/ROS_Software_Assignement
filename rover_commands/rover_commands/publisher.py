@@ -8,7 +8,7 @@ class TrajectoryPublisher(Node):
         super().__init__('trajectory_publisher')
         # TODO: Create a publisher of type Twist
         # Your code here
-        self.publisher_ = self.create_publisher(Twist, 'rover/cmd_vel', 10)
+        self.publisher_ = self.create_publisher(Twist, 'commands', 10)
         timer_period = 0.5
         self.timer = self.create_timer(timer_period, self.cmd_acquisition)
         self.get_logger().info('Publisher node has been started.')
@@ -21,23 +21,21 @@ class TrajectoryPublisher(Node):
         command = input("Enter command (w/a/s/d/t/y - max 2 characters): ")
         # TODO: Complete the function to transform the input into the right command.
         # Your code here
-        twist = Twist() 
-        if command == 'w':
-            twist.linear.x = 1.0
-        elif command == 's':
-            twist.linear.x = -1.0
-        elif command == 'a':
-            twist.linear.z = 1.0
-        elif command == 'd':
-            twist.linear.z = -1.0
-        elif command == 't':
-            twist.angular.y = 1.0
-        elif command == 'y':
-            twist.angular.y = -1.0
-
+        twist = Twist()
+        command_map = {
+            'w': lambda: setattr(twist.linear, 'x', getattr(twist.linear, 'x', 0) + 1.0),
+            's': lambda: setattr(twist.linear, 'x', getattr(twist.linear, 'x', 0) - 1.0),
+            'a': lambda: setattr(twist.linear, 'z', getattr(twist.linear, 'z', 0) + 1.0),
+            'd': lambda: setattr(twist.linear, 'z', getattr(twist.linear, 'z', 0) - 1.0),
+            't': lambda: setattr(twist.angular, 'z', getattr(twist.angular, 'z', 0) + 1.0),
+            'y': lambda: setattr(twist.angular, 'z', getattr(twist.angular, 'z', 0) - 1.0),
+        }
+        for cmd in command:
+            movement = command_map.get(cmd)
+            if movement:
+                movement()
+        self.get_logger().info(f"Sending command: {twist}")
         self.publisher_.publish(twist)
-        self.get_logger().info(f'Published command: {command}')
-
         pass
 
 def main(args=None):
